@@ -135,7 +135,7 @@ def propagation_and_random_search_k(source_patches, target_patches,
                         targetImageIndex = offset_list + [y_pos, x_pos]
                         target_idxy = np.clip(targetImageIndex[:, 0], 0, y - 1)
                         target_idxx = np.clip(targetImageIndex[:, 1], 0, x - 1)
-                        index_list = np.array([[i_y, i_x], ] * offset_list.shape[0])
+                        index_list = np.array([[y_pos, x_pos], ] * offset_list.shape[0])
                         # a list of candidate patches of the source image
                         source_list = np.nan_to_num(source_patches[index_list[:, 0], index_list[:, 1]])
                         # a list of candidate patches of the target image
@@ -152,9 +152,9 @@ def propagation_and_random_search_k(source_patches, target_patches,
                             distance_list[min_index] = np.inf
                             offset_i = (target_idxy[min_index] - y_pos, target_idxx[min_index] - x_pos)
                             if offset_i not in f_coord_dictionary[y_pos][x_pos].keys():
-                                f_coord_dictionary[y_pos][x_pos].pop(max_dis[1])
+                                f_coord_dictionary[y_pos][x_pos].pop(tuple(max_dis[2]), None)
                                 f_coord_dictionary[y_pos][x_pos][offset_i] = 0
-                                heappushpop(f_heap[y_pos][x_pos], (-distance, offset_i, _tiebreaker.next()))
+                                heappushpop(f_heap[y_pos][x_pos], (-distance, _tiebreaker.next(), offset_i))
                                 max_dis = f_heap[y_pos][x_pos][0]
 
                 if random_enabled:
@@ -189,9 +189,9 @@ def propagation_and_random_search_k(source_patches, target_patches,
                         distance_list[min_index] = np.inf
                         offset_i = (new_off_y[min_index], new_off_x[min_index])
                         if offset_i not in f_coord_dictionary[y_pos][x_pos].keys():
-                            f_coord_dictionary[y_pos][x_pos].pop(max_dis[1])
+                            f_coord_dictionary[y_pos][x_pos].pop(tuple(max_dis[2]), None)
                             f_coord_dictionary[y_pos][x_pos][offset_i] = 0
-                            heappushpop(f_heap[y_pos][x_pos], (-distance, offset_i, _tiebreaker.next()))
+                            heappushpop(f_heap[y_pos][x_pos], (-distance, _tiebreaker.next(), offset_i))
                             max_dis = f_heap[y_pos][x_pos][0]
 
     else:
@@ -217,7 +217,7 @@ def propagation_and_random_search_k(source_patches, target_patches,
                         targetImageIndex = offset_list + [y_pos, x_pos]
                         target_idxy = np.clip(targetImageIndex[:, 0], 0, y - 1)
                         target_idxx = np.clip(targetImageIndex[:, 1], 0, x - 1)
-                        index_list = np.array([[i_y, i_x], ] * offset_list.shape[0])
+                        index_list = np.array([[y_pos, x_pos], ] * offset_list.shape[0])
                         # a list of candidate patches of the source image
                         source_list = np.nan_to_num(source_patches[index_list[:, 0], index_list[:, 1]])
                         # a list of candidate patches of the target image
@@ -234,9 +234,9 @@ def propagation_and_random_search_k(source_patches, target_patches,
                             distance_list[min_index] = np.inf
                             offset_i = (target_idxy[min_index] - y_pos, target_idxx[min_index] - x_pos)
                             if offset_i not in f_coord_dictionary[y_pos][x_pos].keys():
-                                f_coord_dictionary[y_pos][x_pos].pop(max_dis[1])
+                                f_coord_dictionary[y_pos][x_pos].pop(tuple(max_dis[2]), None)
                                 f_coord_dictionary[y_pos][x_pos][offset_i] = 0
-                                heappushpop(f_heap[y_pos][x_pos], (-distance, offset_i, _tiebreaker.next()))
+                                heappushpop(f_heap[y_pos][x_pos], (-distance, _tiebreaker.next(), offset_i))
                                 max_dis = f_heap[y_pos][x_pos][0]
 
                 if random_enabled:
@@ -271,9 +271,9 @@ def propagation_and_random_search_k(source_patches, target_patches,
                         distance_list[min_index] = np.inf
                         offset_i = (new_off_y[min_index], new_off_x[min_index])
                         if offset_i not in f_coord_dictionary[y_pos][x_pos].keys():
-                            f_coord_dictionary[y_pos][x_pos].pop(max_dis[1])
+                            f_coord_dictionary[y_pos][x_pos].pop(tuple(max_dis[2]), None)
                             f_coord_dictionary[y_pos][x_pos][offset_i] = 0
-                            heappushpop(f_heap[y_pos][x_pos], (-distance, offset_i, _tiebreaker.next()))
+                            heappushpop(f_heap[y_pos][x_pos], (-distance, _tiebreaker.next(), offset_i))
                             max_dis = f_heap[y_pos][x_pos][0]
 
     #############################################
@@ -347,19 +347,19 @@ def NNF_matrix_to_NNF_heap(source_patches, target_patches, f_k):
     target_list = np.nan_to_num(target_patches[target_y, target_x])
     # compute the distance between source_list and target_list
     distance_list = np.sum(np.linalg.norm(target_list - source_list, axis=-1), axis=-1)
-    for y_pos in range(0, y, 1):
+    for y_pos in range(y):
         Rowheap = []
         Rowcoord = []
-        for x_pos in range(0, x, 1):
+        for x_pos in range(x):
             heap = []
             dict = {}
             for i in range(k):
-                heappush(heap, (-distance_list[y_pos, x_pos], f_k[i, y_pos, x_pos], _tiebreaker.next()))
-                dic[tuple(f_k[i, y_pos, x_pos])] = 0
+                heappush(heap, (-distance_list[i, y_pos, x_pos], _tiebreaker.next(), f_k[i, y_pos, x_pos]))
+                dict[tuple(f_k[i, y_pos, x_pos])] = 0
             # put heap into the row heap
             # put dic into the row dictionary
             Rowheap.append(heap)
-            Rowcoord.append(dic)
+            Rowcoord.append(dict)
         f_heap.append(Rowheap)
         f_coord_dictionary.append(Rowcoord)
     #############################################
@@ -396,14 +396,14 @@ def NNF_heap_to_NNF_matrix(f_heap):
     f_k = np.zeros((k, y, x, 2))
     D_k = np.zeros((k, y, x))
     for y_pos in range(0, y, 1):
-        for x_pos in range(o, x, 1):
+        for x_pos in range(0, x, 1):
             for i in range(0, k, 1):
                 # get next best element
                 element = f_heap[y_pos][x_pos][i]
                 # get the distance
                 distance = -element[0]
                 # get the next best nnf in the heap
-                next_best_nnf = element[1]
+                next_best_nnf = element[2]
                 f_k[i, y_pos, x_pos] = next_best_nnf
                 D_k[i, y_pos, x_pos] = distance
 
@@ -437,7 +437,7 @@ def nlm(target, f_heap, h):
 
 
             # get the offset
-            offset_list = np.array([item[1] for item in f_heap[y_pos][x_pos]])
+            offset_list = np.array([item[2] for item in f_heap[y_pos][x_pos]])
             # get the index in the target image
             target_idx = offset_list + [y_pos, x_pos]
             # get the y and x index
@@ -451,7 +451,7 @@ def nlm(target, f_heap, h):
             # assign the value to the denoised image
             denoised[y_pos, x_pos] = result_sum
     # change the array type to unit8
-    denoised = denoised.astype(np.unit8)
+    denoised = denoised.astype(np.uint8)
     #############################################
 
     return denoised
@@ -496,9 +496,9 @@ def reconstruct_source_from_target(target, f):
     ################################################
     ###  PLACE YOUR A3 CODE BETWEEN THESE LINES  ###
     ################################################
-    target_i = make_coordinates_matrix(target.shape) + f
-    x = np.clip(target_i[:, :, 0], 0, target.shape[0] - 1)
-    y = np.clip(target_i[:, :, 1], 0, target.shape[1] - 1)
+    target_index = make_coordinates_matrix(target.shape) + f
+    x = np.clip(target_index[:, :, 0], 0, target.shape[0] - 1).astype(int)
+    y = np.clip(target_index[:, :, 1], 0, target.shape[1] - 1).astype(int)
     rec_source = target[x, y]
     #############################################
 

@@ -130,7 +130,18 @@ class PatchMatch:
         # COPY INTO THIS SPACE YOUR IMPLEMENTATION OF THIS FUNCTION
         # FROM YOUR algorithm.py of A1-Part A
 
-
+        if key not in self._images:
+            msg = "key is not found"
+            return success, msg
+        else:
+            img = cv.imread(filename)
+            # check if read successful or not
+            if img is None:
+                msg = "read message error"
+                return success, msg
+            else:
+                self._images[key] = img
+                success = 1
         #########################################
         return success, msg
 
@@ -147,7 +158,13 @@ class PatchMatch:
         #########################################
         ## PLACE YOUR CODE BETWEEN THESE LINES ##
         #########################################
-
+        if key not in self._images:
+            msg = "key is not found"
+            return success, msg
+        else:
+            cv.imwrite(filename, self._images[key])
+            
+            success = 1
 
         #########################################
         return success, msg
