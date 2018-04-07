@@ -163,7 +163,7 @@ class PatchMatch:
             return success, msg
         else:
             cv.imwrite(filename, self._images[key])
-            
+
             success = 1
 
         #########################################
